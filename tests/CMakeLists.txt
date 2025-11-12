@@ -1,0 +1,5 @@
+file(GLOB TEST_SOURCES "*.c")
+add_executable(run_tests ${TEST_SOURCES} ../src/player.c ../src/database.c ../src/utils.c)
+target_include_directories(run_tests PRIVATE ../include)
+enable_testing()
+add_test(NAME BasicPlayerTest COMMAND run_tests)
