@@ -5,6 +5,7 @@
 #include "../include/database.h"
 #include "../include/utils.h"
 #include "../include/game.h"
+#include "../include/admin.h"
 
 int main() {
     int choice;
@@ -16,6 +17,7 @@ int main() {
         printf("1. Create a new player\n");
         printf("2. View all players\n");
         printf("3. Start game\n");
+        printf("4. Admin mode\n");
         printf("0. Quit\n");
         printf("Choice: ");
         scanf("%d", &choice);
@@ -33,11 +35,7 @@ int main() {
                     break;
                 }
                 
-                printf("Enter the initial balance: ");
-                scanf("%lf", &balance);
-                clear_input_buffer();
-
-                Player p = create_player(name, balance);
+                Player p = create_player(name, 200);
                 if (save_player_to_db(&p))
                     printf("Player %s saved successfully!\n", p.name);
                 else
@@ -51,7 +49,9 @@ int main() {
             case 3:
                 start_game();
                 break;
-
+            case 4:
+                admin_menu();
+                break;
             case 0:
                 printf("Goodbye!\n");
                 break;
