@@ -121,16 +121,31 @@ int matches_keywords(const char *text, const BotResponse *response) {
     return 0;
 }
 
+static void save_bot_response(const char *player_name, const char *response) {
+    char history_path[256];
+    snprintf(history_path, sizeof(history_path), "db/history_%s.txt", player_name);
+    
+    FILE *file = fopen(history_path, "a");
+    if (file) {
+        fprintf(file, "Narrator: %s\n", response);
+        fclose(file);
+    }
+}
+
 void process_input(Chatbot *bot, Player *player, const char *input) {
     int found = 0;
 
     for (int i = 0; i < bot->response_count; i++) {
         if (matches_keywords(input, &bot->responses[i])) {
             printf("Narrator: %s\n", bot->responses[i].response);
+            save_bot_response(player->name, bot->responses[i].response);
             
             if (bot->responses[i].balance_change != 0) {
                 player->balance += bot->responses[i].balance_change;
-                printf("Narrator: Your new balance: %.2f €\n", player->balance);
+                char balance_msg[256];
+                snprintf(balance_msg, sizeof(balance_msg), "Your new balance: %.2f €", player->balance);
+                printf("Narrator: %s\n", balance_msg);
+                save_bot_response(player->name, balance_msg);
             }
             
             found = 1;
@@ -139,7 +154,9 @@ void process_input(Chatbot *bot, Player *player, const char *input) {
     }
 
     if (!found) {
-        printf("Narrator: I'm not sure what you mean. Try asking about 'work', 'explore', or type 'help'.\n");
+        const char *default_msg = "I'm not sure what you mean. Try asking about 'work', 'explore', or type 'help'.";
+        printf("Narrator: %s\n", default_msg);
+        save_bot_response(player->name, default_msg);
     }
 }
 
