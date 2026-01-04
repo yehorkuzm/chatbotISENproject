@@ -10,7 +10,6 @@
 int main() {
     int choice;
     char name[50];
-    double balance;
 
     do {
         printf("\n=== HOTEL SIMULATOR ===\n");
