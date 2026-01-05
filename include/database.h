@@ -23,4 +23,7 @@ int player_exists(const char *name);
 void get_responses_path(char *path, size_t size);
 
 
+// Update player balance in database
+int update_player_in_db(const Player *player);
+
 #endif

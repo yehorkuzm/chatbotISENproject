@@ -12,7 +12,7 @@ static void to_lowercase(char *str) {
 
 int init_chatbot(Chatbot *bot, const char *response_file) {
     bot->response_count = 0;
-    
+
     FILE *file = fopen(response_file, "r");
     if (!file) {
         printf("Error: Could not open response file: %s\n", response_file);
@@ -22,7 +22,7 @@ int init_chatbot(Chatbot *bot, const char *response_file) {
     char line[MAX_LINE_LENGTH];
     while (fgets(line, sizeof(line), file) && bot->response_count < MAX_RESPONSES) {
         line[strcspn(line, "\n")] = '\0';
-        
+
         // Skip empty lines and comments
         if (line[0] == '\0' || line[0] == '#') {
             continue;
@@ -36,7 +36,7 @@ int init_chatbot(Chatbot *bot, const char *response_file) {
         // Find the first pipe separator
         char *pipe1 = strchr(line, '|');
         if (!pipe1) continue;
-        
+
         // Parse keywords (everything before first pipe)
         *pipe1 = '\0';
         char *keywords_str = line;
@@ -54,24 +54,24 @@ int init_chatbot(Chatbot *bot, const char *response_file) {
                 to_lowercase(resp->keywords[resp->keyword_count]);
                 resp->keyword_count++;
             }
-            
+
             keyword = strtok(NULL, ",");
         }
 
         // Find the second pipe separator
         char *pipe2 = strchr(pipe1 + 1, '|');
-        
+
         if (pipe2) {
             // Parse response text (between first and second pipe)
             *pipe2 = '\0';
             char *response_text = pipe1 + 1;
-            
+
             // Trim leading whitespace
             while (*response_text == ' ') response_text++;
-            
+
             strncpy(resp->response, response_text, MAX_LINE_LENGTH - 1);
             resp->response[MAX_LINE_LENGTH - 1] = '\0';
-            
+
             // Parse balance change (after second pipe)
             char *balance_str = pipe2 + 1;
             while (*balance_str == ' ') balance_str++;
@@ -80,7 +80,7 @@ int init_chatbot(Chatbot *bot, const char *response_file) {
             // No balance change, just response text
             char *response_text = pipe1 + 1;
             while (*response_text == ' ') response_text++;
-            
+
             strncpy(resp->response, response_text, MAX_LINE_LENGTH - 1);
             resp->response[MAX_LINE_LENGTH - 1] = '\0';
         }
@@ -124,7 +124,7 @@ int matches_keywords(const char *text, const BotResponse *response) {
 static void save_bot_response(const char *player_name, const char *response) {
     char history_path[256];
     snprintf(history_path, sizeof(history_path), "db/history_%s.txt", player_name);
-    
+
     FILE *file = fopen(history_path, "a");
     if (file) {
         fprintf(file, "Narrator: %s\n", response);
@@ -135,19 +135,34 @@ static void save_bot_response(const char *player_name, const char *response) {
 void process_input(Chatbot *bot, Player *player, const char *input) {
     int found = 0;
 
+    // Check for balance command specially
+    char input_lower[MAX_LINE_LENGTH];
+    strncpy(input_lower, input, MAX_LINE_LENGTH - 1);
+    input_lower[MAX_LINE_LENGTH - 1] = '\0';
+    to_lowercase(input_lower);
+
+    if (strstr(input_lower, "balance") || strstr(input_lower, "money") ||
+        strstr(input_lower, "cash") || strstr(input_lower, "funds")) {
+        char balance_msg[256];
+        snprintf(balance_msg, sizeof(balance_msg), "Your current balance is: %.2f EUR", player->balance);
+        printf("Narrator: %s\n", balance_msg);
+        save_bot_response(player->name, balance_msg);
+        return;
+    }
+
     for (int i = 0; i < bot->response_count; i++) {
         if (matches_keywords(input, &bot->responses[i])) {
             printf("Narrator: %s\n", bot->responses[i].response);
             save_bot_response(player->name, bot->responses[i].response);
-            
+
             if (bot->responses[i].balance_change != 0) {
                 player->balance += bot->responses[i].balance_change;
                 char balance_msg[256];
-                snprintf(balance_msg, sizeof(balance_msg), "Your new balance: %.2f €", player->balance);
+                snprintf(balance_msg, sizeof(balance_msg), "Your new balance: %.2f EUR", player->balance);
                 printf("Narrator: %s\n", balance_msg);
                 save_bot_response(player->name, balance_msg);
             }
-            
+
             found = 1;
             break;
         }

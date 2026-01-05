@@ -73,7 +73,7 @@ void start_game() {
     // Check if player exists in database
     if (player_exists(player_name)) {
         if (load_player_from_db(player_name, &player)) {
-            printf("Welcome back, %s! Your balance is %.2f €\n", player.name, player.balance);
+            printf("Welcome back, %s! Your balance is %.2f EUR\n", player.name, player.balance);
         } else {
             printf("Error loading player data.\n");
             return;
@@ -145,4 +145,7 @@ void start_game() {
 
     cleanup_chatbot(&bot);
 
+    // Save player's final balance to database
+    update_player_in_db(&player);
+    printf("Progress saved.\n");
 }

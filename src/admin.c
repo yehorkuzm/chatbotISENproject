@@ -228,7 +228,7 @@ void delete_player_admin() {
         char name[50];
         double balance;
         sscanf(lines[line_count], "%s %lf", name, &balance);
-        printf("[%d] %s - %.2f €\n", line_count + 1, name, balance);
+        printf("[%d] %s - %.2f EUR\n", line_count + 1, name, balance);
         line_count++;
     }
     fclose(file);

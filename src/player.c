@@ -11,5 +11,5 @@ Player create_player(const char *name, double initial_balance) {
 }
 
 void print_player(const Player *p) {
-    printf("Nom: %s | Solde: %.2f €\n", p->name, p->balance);
+    printf("Name: %s | Balance: %.2f EUR\n", p->name, p->balance);
 }

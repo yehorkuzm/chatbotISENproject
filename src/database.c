@@ -106,3 +106,47 @@ void get_responses_path(char *path, size_t size) {
     ensure_db_directory_exists();
     snprintf(path, size, "%s/%s", PLAYER_DB_DIR, RESPONSES_FILE);
 }
+int update_player_in_db(const Player *player) {
+    char path[256];
+    snprintf(path, sizeof(path), "%s/%s", PLAYER_DB_DIR, PLAYER_DB_FILE);
+
+    // Read all players into memory
+    FILE *file = fopen(path, "r");
+    if (!file) {
+        return 0;
+    }
+
+    Player players[100];
+    int count = 0;
+    while (fscanf(file, "%49s %lf", players[count].name, &players[count].balance) == 2 && count < 100) {
+        count++;
+    }
+    fclose(file);
+
+    // Update the target player
+    int found = 0;
+    for (int i = 0; i < count; i++) {
+        if (strcmp(players[i].name, player->name) == 0) {
+            players[i].balance = player->balance;
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found) {
+        return 0;
+    }
+
+    // Rewrite the file
+    file = fopen(path, "w");
+    if (!file) {
+        return 0;
+    }
+
+    for (int i = 0; i < count; i++) {
+        fprintf(file, "%s %.2f\n", players[i].name, players[i].balance);
+    }
+    fclose(file);
+
+    return 1;
+}
