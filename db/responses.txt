@@ -2,19 +2,19 @@
 # Format: KEYWORDS|RESPONSE|BALANCE_CHANGE
 # Keywords are comma-separated
 
-help|Here's what you can do:\n- Ask about 'work' or 'job' to find employment\n- Choose positions: reception, cleaning, kitchen, maintenance\n- 'explore' or 'look around' to see the hotel\n- Check your 'balance' or 'money'\n- 'pay rent' when you have enough money\n- Type 'quit' to exit|0
+help,commands,?|=== AVAILABLE COMMANDS ===\n  Jobs:   reception, cleaning, kitchen, maintenance\n  Money:  balance, pay rent\n  Other:  explore, rest, eat, help\n  Toggle: hide / show (commands visibility)\n  Exit:   quit\n===========================|0
 
 work,job,employ|Excellent initiative! Let me check available positions...\nThe hotel manager is looking for help. What type of work interests you?\nWe have positions for: reception, cleaning, kitchen, or maintenance.|0
 
-reception,receptionist,desk|You approach the reception desk. The manager interviews you.\nCongratulations! You got the job! You earned 150 € for today's shift.|150
+reception,receptionist,desk|You approach the reception desk. The manager interviews you.\nCongratulations! You got the job! You earned 150 EUR for today's shift.|150
 
-clean,cleaning,housekeeping|You grab cleaning supplies and start cleaning rooms.\nGood work! You earned 100 € for cleaning 5 rooms.|100
+clean,cleaning,housekeeping|You grab cleaning supplies and start cleaning rooms.\nGood work! You earned 100 EUR for cleaning 5 rooms.|100
 
-kitchen,cook,chef,restaurant|You head to the hotel kitchen. The chef needs help!\nYou assisted with meal prep. You earned 120 € for your work.|120
+kitchen,cook,chef,restaurant|You head to the hotel kitchen. The chef needs help!\nYou assisted with meal prep. You earned 120 EUR for your work.|120
 
-maintenance,repair,fix,plumbing|You help fix a broken pipe in room 305.\nThe hotel pays you 130 € for the repair work.|130
+maintenance,repair,fix,plumbing|You help fix a broken pipe in room 305.\nThe hotel pays you 130 EUR for the repair work.|130
 
-rent,pay rent|Your weekly rent is 200 €. You need to earn more money to pay it.|-200
+rent,pay rent|Your weekly rent is 200 EUR. You need to earn more money to pay it.|-200
 
 explore,look,walk,around|You walk through the hotel corridors. You see:\n- A busy reception desk\n- The hotel restaurant with delicious smells\n- A maintenance room with tools\n- Cleaning carts in the hallway|0
 
@@ -22,6 +22,6 @@ balance,money,cash,funds|Let me check your current balance for you.|0
 
 rest,sleep,relax,tired|You go back to your room and rest for a while. You feel refreshed!|0
 
-eat,food,hungry,meal|You grab a quick meal from the hotel restaurant. It costs 15 €.|-15
+eat,food,hungry,meal|You grab a quick meal from the hotel restaurant. It costs 15 EUR.|-15
 
 talk,chat,speak,conversation|I'm always here to help you! What would you like to know?|0

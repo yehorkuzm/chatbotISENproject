@@ -23,4 +23,13 @@ int player_exists(const char *name);
 void get_responses_path(char *path, size_t size);
 
 
+// Update player balance in database
+int update_player_in_db(const Player *player);
+
+// Save last played player name
+void save_last_player(const char *name);
+
+// Load last played player name (returns 1 if found and player exists, 0 otherwise)
+int load_last_player(char *name, size_t size);
+
 #endif

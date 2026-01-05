@@ -8,21 +8,31 @@
 static void save_message_to_history(const char *player_name, const char *sender, const char *message) {
     char history_path[256];
     snprintf(history_path, sizeof(history_path), "db/history_%s.txt", player_name);
-    
+
     FILE *file = fopen(history_path, "a");
     if (!file) {
         printf("Warning: Could not save message to history.\n");
         return;
     }
-    
+
     fprintf(file, "%s: %s\n", sender, message);
     fclose(file);
+}
+
+static void display_commands(void) {
+    printf("\n=== AVAILABLE COMMANDS ===\n");
+    printf("  Jobs:   reception, cleaning, kitchen, maintenance\n");
+    printf("  Money:  balance, pay rent\n");
+    printf("  Other:  explore, rest, eat, help\n");
+    printf("  Toggle: hide / show (commands visibility)\n");
+    printf("  Exit:   quit\n");
+    printf("===========================\n");
 }
 
 static void display_conversation_history(const char *player_name) {
     char history_path[256];
     snprintf(history_path, sizeof(history_path), "db/history_%s.txt", player_name);
-    
+
     FILE *file = fopen(history_path, "r");
     if (!file) {
         // No history exists, show welcome message
@@ -30,8 +40,10 @@ static void display_conversation_history(const char *player_name) {
         printf("Narrator: Welcome, %s! You've just arrived at the Hotel Grand ISEN.\n", player_name);
         printf("Narrator: You're living in room 204, but your savings are running low.\n");
         printf("Narrator: You need to find work in the hotel to pay your rent and survive.\n");
-        printf("Narrator: Talk to me about what you want to do. Type 'quit' to exit the game.\n\n");
-        
+        printf("Narrator: Talk to me about what you want to do. Type 'quit' to exit the game.\n");
+        display_commands();
+        printf("\n");
+
         // Save welcome message to history
         save_message_to_history(player_name, "Narrator", "Welcome! You've just arrived at the Hotel Grand ISEN.");
         save_message_to_history(player_name, "Narrator", "You're living in room 204, but your savings are running low.");
@@ -39,7 +51,7 @@ static void display_conversation_history(const char *player_name) {
         save_message_to_history(player_name, "Narrator", "Talk to me about what you want to do. Type 'quit' to exit the game.");
         return;
     }
-    
+
     printf("\n=== CONVERSATION HISTORY ===\n");
     char line[512];
     while (fgets(line, sizeof(line), file)) {
@@ -50,6 +62,79 @@ static void display_conversation_history(const char *player_name) {
     fclose(file);
 }
 
+// Internal function that runs the game loop for a loaded player
+static void run_game_loop(Player *player) {
+    display_conversation_history(player->name);
+
+    // Show commands at game start if preference is enabled
+    if (player->show_commands) {
+        display_commands();
+    }
+    printf("\n");
+
+    // Get responses file path from database module
+    char responses_path[256];
+    get_responses_path(responses_path, sizeof(responses_path));
+
+    Chatbot bot;
+    if (!init_chatbot(&bot, responses_path)) {
+        printf("Error: Failed to initialize chatbot. Make sure %s exists.\n", responses_path);
+        return;
+    }
+
+    // Save as last played player
+    save_last_player(player->name);
+
+    char input[256];
+    int game_running = 1;
+
+    while (game_running) {
+        printf("\n> %s: ", player->name);
+        fgets(input, sizeof(input), stdin);
+        input[strcspn(input, "\n")] = '\0';
+        printf("\n");
+
+        if (strcmp(input, "quit") == 0 || strcmp(input, "exit") == 0) {
+            printf("  Narrator: Goodbye, %s! Come back soon.\n", player->name);
+            save_message_to_history(player->name, player->name, input);
+            save_message_to_history(player->name, "Narrator", "Goodbye! Come back soon.");
+            game_running = 0;
+        } else if (strcmp(input, "hide") == 0 || strcmp(input, "hide commands") == 0) {
+            player->show_commands = 0;
+            printf("  Narrator: Commands hidden. Type 'show' or 'help' to see them again.\n");
+            save_message_to_history(player->name, player->name, input);
+            save_message_to_history(player->name, "Narrator", "Commands hidden.");
+        } else if (strcmp(input, "show") == 0 || strcmp(input, "show commands") == 0) {
+            player->show_commands = 1;
+            printf("  Narrator: Commands will now be shown after each action.\n");
+            display_commands();
+            save_message_to_history(player->name, player->name, input);
+            save_message_to_history(player->name, "Narrator", "Commands shown.");
+        } else {
+            save_message_to_history(player->name, player->name, input);
+            process_input(&bot, player, input);
+
+            // Show commands after each action if enabled
+            if (player->show_commands) {
+                display_commands();
+            }
+        }
+
+        if (player->balance <= 0) {
+            printf("\nNarrator: Oh no! You've run out of money and can't afford your room anymore.\n");
+            printf("Narrator: GAME OVER.\n");
+            save_message_to_history(player->name, "Narrator", "Oh no! You've run out of money and can't afford your room anymore. GAME OVER.");
+            game_running = 0;
+        }
+    }
+
+    cleanup_chatbot(&bot);
+
+    // Save player's final balance to database
+    update_player_in_db(player);
+    printf("Progress saved.\n");
+}
+
 void start_game() {
     char player_name[50];
     printf("\nEnter your player name to start the game: ");
@@ -57,11 +142,11 @@ void start_game() {
     player_name[strcspn(player_name, "\n")] = '\0';
 
     Player player;
-    
+
     // Check if player exists in database
     if (player_exists(player_name)) {
         if (load_player_from_db(player_name, &player)) {
-            printf("Welcome back, %s! Your balance is %.2f €\n", player.name, player.balance);
+            printf("Welcome back, %s! Your balance is %.2f EUR\n", player.name, player.balance);
         } else {
             printf("Error loading player data.\n");
             return;
@@ -71,45 +156,17 @@ void start_game() {
         printf("Please create a player first from the main menu.\n");
         return;
     }
-    
-    display_conversation_history(player.name);
-    
-    // Get responses file path from database module
-    char responses_path[256];
-    get_responses_path(responses_path, sizeof(responses_path));
-    
-    Chatbot bot;
-    if (!init_chatbot(&bot, responses_path)) {
-        printf("Error: Failed to initialize chatbot. Make sure %s exists.\n", responses_path);
-        return;
+
+    run_game_loop(&player);
+}
+
+void continue_game(const char *player_name) {
+    Player player;
+
+    if (load_player_from_db(player_name, &player)) {
+        printf("Welcome back, %s! Your balance is %.2f EUR\n", player.name, player.balance);
+        run_game_loop(&player);
+    } else {
+        printf("Error loading player data.\n");
     }
-
-    char input[256];
-    int game_running = 1;
-
-    while (game_running) {
-        printf("%s: ", player.name);
-        fgets(input, sizeof(input), stdin);
-        input[strcspn(input, "\n")] = '\0';
-
-        if (strcmp(input, "quit") == 0 || strcmp(input, "exit") == 0) {
-            printf("Narrator: Goodbye, %s! Come back soon.\n", player.name);
-            save_message_to_history(player.name, player.name, input);
-            save_message_to_history(player.name, "Narrator", "Goodbye! Come back soon.");
-            game_running = 0;
-        } else {
-            save_message_to_history(player.name, player.name, input);
-            process_input(&bot, &player, input);
-        }
-
-        if (player.balance <= 0) {
-            printf("\nNarrator: Oh no! You've run out of money and can't afford your room anymore.\n");
-            printf("Narrator: GAME OVER.\n");
-            save_message_to_history(player.name, "Narrator", "Oh no! You've run out of money and can't afford your room anymore. GAME OVER.");
-            game_running = 0;
-        }
-    }
-
-    cleanup_chatbot(&bot);
-    
 }
