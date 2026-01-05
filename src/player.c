@@ -7,6 +7,7 @@ Player create_player(const char *name, double initial_balance) {
     strncpy(p.name, name, sizeof(p.name) - 1);
     p.name[sizeof(p.name) - 1] = '\0';
     p.balance = initial_balance;
+    p.show_commands = 1;  // Show commands by default
     return p;
 }
 

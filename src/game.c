@@ -86,8 +86,10 @@ void start_game() {
 
     display_conversation_history(player.name);
 
-    // Always show commands at game start
-    display_commands();
+    // Show commands at game start if preference is enabled
+    if (player.show_commands) {
+        display_commands();
+    }
     printf("\n");
 
     // Get responses file path from database module
@@ -102,7 +104,6 @@ void start_game() {
 
     char input[256];
     int game_running = 1;
-    int show_commands = 1;  // Commands visible by default
 
     while (game_running) {
         printf("%s: ", player.name);
@@ -115,12 +116,12 @@ void start_game() {
             save_message_to_history(player.name, "Narrator", "Goodbye! Come back soon.");
             game_running = 0;
         } else if (strcmp(input, "hide") == 0 || strcmp(input, "hide commands") == 0) {
-            show_commands = 0;
+            player.show_commands = 0;
             printf("Narrator: Commands hidden. Type 'show' or 'help' to see them again.\n");
             save_message_to_history(player.name, player.name, input);
             save_message_to_history(player.name, "Narrator", "Commands hidden.");
         } else if (strcmp(input, "show") == 0 || strcmp(input, "show commands") == 0) {
-            show_commands = 1;
+            player.show_commands = 1;
             printf("Narrator: Commands will now be shown after each action.\n");
             display_commands();
             save_message_to_history(player.name, player.name, input);
@@ -128,9 +129,9 @@ void start_game() {
         } else {
             save_message_to_history(player.name, player.name, input);
             process_input(&bot, &player, input);
-            
+
             // Show commands after each action if enabled
-            if (show_commands) {
+            if (player.show_commands) {
                 display_commands();
             }
         }
