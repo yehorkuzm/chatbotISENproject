@@ -170,3 +170,40 @@ int update_player_in_db(const Player *player) {
 
     return 1;
 }
+
+void save_last_player(const char *name) {
+    ensure_db_directory_exists();
+
+    char path[256];
+    snprintf(path, sizeof(path), "%s/last_player.txt", PLAYER_DB_DIR);
+
+    FILE *file = fopen(path, "w");
+    if (file) {
+        fprintf(file, "%s\n", name);
+        fclose(file);
+    }
+}
+
+int load_last_player(char *name, size_t size) {
+    char path[256];
+    snprintf(path, sizeof(path), "%s/last_player.txt", PLAYER_DB_DIR);
+
+    FILE *file = fopen(path, "r");
+    if (!file) {
+        return 0;
+    }
+
+    if (fgets(name, size, file)) {
+        name[strcspn(name, "\n")] = '\0';
+        fclose(file);
+
+        // Verify player still exists
+        if (player_exists(name)) {
+            return 1;
+        }
+    } else {
+        fclose(file);
+    }
+
+    return 0;
+}
