@@ -106,23 +106,24 @@ void start_game() {
     int game_running = 1;
 
     while (game_running) {
-        printf("%s: ", player.name);
+        printf("\n> %s: ", player.name);
         fgets(input, sizeof(input), stdin);
         input[strcspn(input, "\n")] = '\0';
+        printf("\n");
 
         if (strcmp(input, "quit") == 0 || strcmp(input, "exit") == 0) {
-            printf("Narrator: Goodbye, %s! Come back soon.\n", player.name);
+            printf("  Narrator: Goodbye, %s! Come back soon.\n", player.name);
             save_message_to_history(player.name, player.name, input);
             save_message_to_history(player.name, "Narrator", "Goodbye! Come back soon.");
             game_running = 0;
         } else if (strcmp(input, "hide") == 0 || strcmp(input, "hide commands") == 0) {
             player.show_commands = 0;
-            printf("Narrator: Commands hidden. Type 'show' or 'help' to see them again.\n");
+            printf("  Narrator: Commands hidden. Type 'show' or 'help' to see them again.\n");
             save_message_to_history(player.name, player.name, input);
             save_message_to_history(player.name, "Narrator", "Commands hidden.");
         } else if (strcmp(input, "show") == 0 || strcmp(input, "show commands") == 0) {
             player.show_commands = 1;
-            printf("Narrator: Commands will now be shown after each action.\n");
+            printf("  Narrator: Commands will now be shown after each action.\n");
             display_commands();
             save_message_to_history(player.name, player.name, input);
             save_message_to_history(player.name, "Narrator", "Commands shown.");

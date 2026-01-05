@@ -145,21 +145,21 @@ void process_input(Chatbot *bot, Player *player, const char *input) {
         strstr(input_lower, "cash") || strstr(input_lower, "funds")) {
         char balance_msg[256];
         snprintf(balance_msg, sizeof(balance_msg), "Your current balance is: %.2f EUR", player->balance);
-        printf("Narrator: %s\n", balance_msg);
+        printf("  Narrator: %s\n", balance_msg);
         save_bot_response(player->name, balance_msg);
         return;
     }
 
     for (int i = 0; i < bot->response_count; i++) {
         if (matches_keywords(input, &bot->responses[i])) {
-            printf("Narrator: %s\n", bot->responses[i].response);
+            printf("  Narrator: %s\n", bot->responses[i].response);
             save_bot_response(player->name, bot->responses[i].response);
 
             if (bot->responses[i].balance_change != 0) {
                 player->balance += bot->responses[i].balance_change;
                 char balance_msg[256];
                 snprintf(balance_msg, sizeof(balance_msg), "Your new balance: %.2f EUR", player->balance);
-                printf("Narrator: %s\n", balance_msg);
+                printf("\n  Narrator: %s\n", balance_msg);
                 save_bot_response(player->name, balance_msg);
             }
 
@@ -170,7 +170,7 @@ void process_input(Chatbot *bot, Player *player, const char *input) {
 
     if (!found) {
         const char *default_msg = "I'm not sure what you mean. Try asking about 'work', 'explore', or type 'help'.";
-        printf("Narrator: %s\n", default_msg);
+        printf("  Narrator: %s\n", default_msg);
         save_bot_response(player->name, default_msg);
     }
 }
